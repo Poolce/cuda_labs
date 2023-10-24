@@ -51,20 +51,15 @@ double cuda_taxpy(int n, T* X, int Xinc, T* Y, int Yinc, T alpfa){
 
     double start = omp_get_wtime();
     taxpy_kernel<T><<<blocksPerGrid, threadsPerBlock>>>(n, gpuX, Xinc, gpuY, Yinc, alpfa);
-    err = cudaGetLastError();
-    if (err != cudaSuccess){
-        printf("Kernel launch error");
-        exit(EXIT_FAILURE);
-    }
-
-    //memory relocation Device to host
+    cudaDeviceSynchronize();
+    double end = omp_get_wtime();
+    
+//memory relocation Device to host
     err = cudaMemcpy(Y, gpuY, n*sizeof(T), cudaMemcpyDeviceToHost);
     if (err != cudaSuccess){
         printf("gpuY memory relocation error. Device to host.");
         exit(EXIT_FAILURE);
     }
-    double end = omp_get_wtime();
-
     //freeing memory 
     err = cudaFree(gpuX);
     if (err != cudaSuccess){
