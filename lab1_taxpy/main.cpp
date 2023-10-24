@@ -18,7 +18,10 @@ void Run_tests(){
 
         //CPU res in copyB
         taxpy<float>(100, vecA, 2, copyB, 3, 4.53);
-
+        //data destruction
+        delete[] vecA;
+        delete[] vecB;
+        delete[] copyB;
         return is_equal(vec_size, vecB, copyB);
     });
 
@@ -36,7 +39,10 @@ void Run_tests(){
 
         //CPU res in copyB
         taxpy<float>(100, vecA, 2, copyB, 3, 4.53);
-
+        //data destruction
+        delete[] vecA;
+        delete[] vecB;
+        delete[] copyB;
         return is_equal(vec_size, vecB, copyB);
     });
 
@@ -54,7 +60,10 @@ void Run_tests(){
 
         //CPU res in copyB
         taxpy<double>(100, vecA, 2, copyB, 3, 4.53);
-
+        //data destruction
+        delete[] vecA;
+        delete[] vecB;
+        delete[] copyB;
         return is_equal(vec_size, vecB, copyB);
     });
     
@@ -72,7 +81,10 @@ void Run_tests(){
 
         //CPU res in copyB
         taxpy<double>(100, vecA, 2, copyB, 3, 4.53);
-
+        //data destruction
+        delete[] vecA;
+        delete[] vecB;
+        delete[] copyB;
         return is_equal(vec_size, vecB, copyB);
     });
 }
