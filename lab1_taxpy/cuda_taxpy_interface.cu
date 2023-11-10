@@ -9,13 +9,12 @@ template <typename T>
 __global__ void taxpy_kernel(int n, T* X, int Xinc, T* Y, int Yinc, T alpfa){
     int op_nom = std::ceil(((double)(n) / (double)(max(Xinc,Yinc))));
     int i = blockIdx.x * blockDim.x + threadIdx.x;
-
     if(i < op_nom)
         Y[i*Yinc]+=alpfa*X[i*Xinc];
 }
 
 template <typename T>
-double cuda_taxpy(int n, T* X, int Xinc, T* Y, int Yinc, T alpfa){
+double cuda_taxpy(int n, T* X, int Xinc, T* Y, int Yinc, T alpfa, int blocksPerGrid, int threadsPerBlock){
     cudaError_t err = cudaSuccess;
 
     //memory allocation
@@ -46,15 +45,12 @@ double cuda_taxpy(int n, T* X, int Xinc, T* Y, int Yinc, T alpfa){
     }
 
     //Launch kernel and mark the time
-    int threadsPerBlock = 256;
-    int blocksPerGrid = (n + threadsPerBlock - 1) / threadsPerBlock;
-
     double start = omp_get_wtime();
     taxpy_kernel<T><<<blocksPerGrid, threadsPerBlock>>>(n, gpuX, Xinc, gpuY, Yinc, alpfa);
     cudaDeviceSynchronize();
     double end = omp_get_wtime();
     
-//memory relocation Device to host
+    //memory relocation Device to host
     err = cudaMemcpy(Y, gpuY, n*sizeof(T), cudaMemcpyDeviceToHost);
     if (err != cudaSuccess){
         printf("gpuY memory relocation error. Device to host.");
@@ -79,11 +75,11 @@ double cuda_taxpy(int n, T* X, int Xinc, T* Y, int Yinc, T alpfa){
 
 
 /* ????? To correct ????? */
-double cuda_daxpy(int n, double* X, int Xinc, double* Y, int Yinc, double alpfa){
-    return cuda_taxpy<double> (n, X, Xinc,Y, Yinc, alpfa);
+double cuda_daxpy(int n, double* X, int Xinc, double* Y, int Yinc, double alpfa, int blocksPerGrid, int threadsPerBlock){
+    return cuda_taxpy<double> (n, X, Xinc,Y, Yinc, alpfa, blocksPerGrid, threadsPerBlock);
 }
 
-double cuda_faxpy(int n, float* X, int Xinc, float* Y, int Yinc, float alpfa){
-    return cuda_taxpy<float> (n, X, Xinc, Y, Yinc, alpfa);
+double cuda_faxpy(int n, float* X, int Xinc, float* Y, int Yinc, float alpfa, int blocksPerGrid, int threadsPerBlock){
+    return cuda_taxpy<float> (n, X, Xinc, Y, Yinc, alpfa, blocksPerGrid, threadsPerBlock);
 }
 /*------------------------*/

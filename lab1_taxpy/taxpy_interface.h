@@ -67,7 +67,7 @@ void taxpy(int n, T* X, int Xinc, T* Y, int Yinc, T alpfa){
 }
 
 template <typename T>
-timeResult GetResultExp(int vectorSize, int Xinc, int Yinc, T alpfa, char* descr, int omp_thread_nom){
+timeResult GetResultExp(int vectorSize, int Xinc, int Yinc, T alpfa, char* descr, int omp_thread_nom, int blocksPerGrid, int threadsPerBlock){
     T* vecA = get_rand_vector<T>(vectorSize);
     T* vecB = get_rand_vector<T>(vectorSize);
 
@@ -87,7 +87,7 @@ timeResult GetResultExp(int vectorSize, int Xinc, int Yinc, T alpfa, char* descr
 
     ////////////CUDA
     TimeStart = omp_get_wtime();
-    double CudaTimeWithoutLoad = cuda_t_axpy<T>(vectorSize, vecA, Xinc, vecB, Yinc, alpfa);
+    double CudaTimeWithoutLoad = cuda_t_axpy<T>(vectorSize, vecA, Xinc, vecB, Yinc, alpfa, blocksPerGrid, threadsPerBlock);
     TimeEnd = omp_get_wtime();
     double CudaTimeWithLoad = TimeEnd - TimeStart;
 
