@@ -59,7 +59,7 @@ __global__ void  MatrixMulKernel(const T* A, std::size_t A_m, const T* B, std::s
     }
     std::size_t CBlockBegin = B_m * block_size * Bx + block_size * By;
 
-    C[CBlockBegin + B_m * Ty + Tx] = C_XY_Element;
+    C[CBlockBegin + B_m * Tx + Ty] = C_XY_Element;
 }
 
 

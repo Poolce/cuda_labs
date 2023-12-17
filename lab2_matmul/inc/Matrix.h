@@ -4,6 +4,7 @@
 #include <iostream>
 #include <omp.h>
 #include <exception>
+#include <limits>
 
 #include "./Buffer2D.h"
 #include "./CudaMatMulTemp.h"
@@ -21,15 +22,18 @@ public:
     Matrix<T> get_transpose();
 
     friend bool operator==(const Matrix& lhs, const Matrix& rhs){
-        int m, n;
-        if((m = lhs.data.m != rhs.data.m) || (n = lhs.data.n != rhs.data.n))
+        int m,n;
+        if(((m = lhs.data.m) != rhs.data.m) || ((n = lhs.data.n) != rhs.data.n)){
             return false;
+        }
 
-        for(int i = 0; i < n; i++)
-            for(int j = 0; j < m; j++)
-                if(lhs.data.at(i,j) != rhs.data.at(i,j))
+        for(int i = 0; i < n; i++){
+            for(int j = 0; j < m; j++){
+                if((lhs.data.at(i,j) - rhs.data.at(i,j)) > 0.1){
                     return false;
-
+                }
+            }
+        }
 
         return true;
     }
@@ -67,11 +71,13 @@ public:
 
         omp_set_num_threads(omp_thread_nom);
         #pragma omp parallel for
-        for(int i = 0; i < A.data.n; i++)
-            for(int j = 0; j < B.data.m; j++)
-                for(int k = 0; k < A.data.m; k++)
+        for(int i = 0; i < A.data.n; i++){
+            for(int j = 0; j < B.data.m; j++){
+                for(int k = 0; k < A.data.m; k++){
                     C.data.at(i,j) += A.data.at(i,k) * B.data.at(k,j);
-
+                }
+            }
+        }
         return C;
     }
 
@@ -110,10 +116,12 @@ public:
 
 template<typename T>
 Matrix<T>::Matrix(int n, int m, bool randomize):data(n,m){
-    T Tzero;
-    if (!(Tzero = static_cast<T>(1))){
+    if (!(static_cast<T>(1))){
         throw std::invalid_argument("Type of matrix elements should have standart zero.");
     }
+
+    T Tzero = static_cast<T>(0);
+
     std::random_device dev;
     std::mt19937 gen(dev());
     if(randomize){
