@@ -2,6 +2,7 @@
 #include "taxpy_interface.h"
 #include "cuda_taxpy_template.h"
 #include "test.h"
+#include <iostream>
 
 void Run_tests(){
     test((char*)"FLOAT CPU AND GPU 100 ELEMENTS", [](){
@@ -13,6 +14,8 @@ void Run_tests(){
 
         //run
         float* copyB = copy_vector(vec_size, vecB);
+
+
         //GPU res in vecB
         int threadsPerBlock = 256;
         int blocksPerGrid = (vec_size + threadsPerBlock - 1) / threadsPerBlock;
@@ -20,35 +23,37 @@ void Run_tests(){
 
         //CPU res in copyB
         taxpy<float>(vec_size, vecA, 2, copyB, 3, 4.53);
+
+        auto res = is_equal(vec_size, vecB, copyB);
         //data destruction
         delete[] vecA;
         delete[] vecB;
         delete[] copyB;
-        return is_equal(vec_size, vecB, copyB);
+        return res;
     });
-
     test((char*)"FLOAT CPU OMP4 AND GPU 1000 ELEMENTS", [](){
         //init
-        omp_set_num_threads(4);
+        omp_set_num_threads(6);
         int vec_size = 1000;
         float* vecA = get_rand_vector<float>(vec_size);
         float* vecB = get_rand_vector<float>(vec_size);
-
         //run
         float* copyB = copy_vector(vec_size, vecB);
         //GPU res in vecB
         int threadsPerBlock = 256;
         int blocksPerGrid = (vec_size + threadsPerBlock - 1) / threadsPerBlock;
 
-        cuda_t_axpy<float>(vec_size, vecA, 4, vecB, 7, 4.53, blocksPerGrid, threadsPerBlock);
 
+        cuda_t_axpy<float>(vec_size, vecA, 4, vecB, 7, 1, blocksPerGrid, threadsPerBlock);
         //CPU res in copyB
-        taxpy<float>(vec_size, vecA, 2, copyB, 3, 4.53);
+        taxpy<float>(vec_size, vecA, 4, copyB, 7, 1);
+        //data destruction
+        auto res = is_equal(vec_size, vecB, copyB);
         //data destruction
         delete[] vecA;
         delete[] vecB;
         delete[] copyB;
-        return is_equal(vec_size, vecB, copyB);
+        return res;
     });
     test((char*)"FLOAT CPU OMP4 AND GPU RANDOM PARAMETERS", [](){
         //init
@@ -62,12 +67,21 @@ void Run_tests(){
         //GPU res in vecB
         int threadsPerBlock = 256;
         int blocksPerGrid = (vec_size + threadsPerBlock - 1) / threadsPerBlock;
-        cuda_t_axpy<float>(vec_size, vecA, rand()%20+5, vecB, rand()%20+5, 4.53, blocksPerGrid, threadsPerBlock);
+
+        int incX = rand()%20+5;
+        int incY = rand()%20+5;
+
+        cuda_t_axpy<float>(vec_size, vecA, incX, vecB, incY, 4.53, blocksPerGrid, threadsPerBlock);
 
         //CPU res in copyB
-        taxpy<float>(vec_size, vecA, rand()%20+5, copyB, rand()%20+5, 4.53);
+        taxpy<float>(vec_size, vecA, incX, copyB, incY, 4.53);
 
-        return is_equal(vec_size, vecB, copyB);
+        auto res = is_equal(vec_size, vecB, copyB);
+        //data destruction
+        delete[] vecA;
+        delete[] vecB;
+        delete[] copyB;
+        return res;
     });
     test((char*)"DOUBLE CPU AND GPU 100 ELEMENTS", [](){
         //init
@@ -86,10 +100,12 @@ void Run_tests(){
         //CPU res in copyB
         taxpy<double>(vec_size, vecA, 2, copyB, 3, 4.53);
         //data destruction
+         auto res = is_equal(vec_size, vecB, copyB);
+        //data destruction
         delete[] vecA;
         delete[] vecB;
         delete[] copyB;
-        return is_equal(vec_size, vecB, copyB);
+        return res;
     });
     test((char*)"DOUBLE CPU OMP4 AND GPU 1000 ELEMENTS", [](){
         //init
@@ -103,15 +119,17 @@ void Run_tests(){
         //GPU res in vecB
         int threadsPerBlock = 256;
         int blocksPerGrid = (vec_size + threadsPerBlock - 1) / threadsPerBlock;
-        cuda_t_axpy<double>(vec_size, vecA, 4, vecB, 7, 4.53, blocksPerGrid, threadsPerBlock);
+        cuda_t_axpy<double>(vec_size, vecA, 2, vecB, 3, 4.53, blocksPerGrid, threadsPerBlock);
 
         //CPU res in copyB
         taxpy<double>(vec_size, vecA, 2, copyB, 3, 4.53);
         //data destruction
+        auto res = is_equal(vec_size, vecB, copyB);
+        //data destruction
         delete[] vecA;
         delete[] vecB;
         delete[] copyB;
-        return is_equal(vec_size, vecB, copyB);
+        return res;
     });
     test((char*)"DOUBLE CPU OMP4 AND GPU RANDOM PARAMETERS", [](){
         //init
@@ -125,12 +143,22 @@ void Run_tests(){
         //GPU res in vecB
         int threadsPerBlock = 256;
         int blocksPerGrid = (vec_size + threadsPerBlock - 1) / threadsPerBlock;
-        cuda_t_axpy<double>(vec_size, vecA, rand()%20+5, vecB, rand()%20+5, 4.53, blocksPerGrid, threadsPerBlock);
+
+
+
+        int incX = rand()%20+5;
+        int incY = rand()%20+5;
+        cuda_t_axpy<double>(vec_size, vecA, incX, vecB, incY, 4.53, blocksPerGrid, threadsPerBlock);
 
         //CPU res in copyB
-        taxpy<double>(vec_size, vecA, rand()%20+5, copyB, rand()%20+5, 4.53);
+        taxpy<double>(vec_size, vecA, incX, copyB, incY, 4.53);
 
-        return is_equal(vec_size, vecB, copyB);
+        auto res = is_equal(vec_size, vecB, copyB);
+        //data destruction
+        delete[] vecA;
+        delete[] vecB;
+        delete[] copyB;
+        return res;
     });
 }
 

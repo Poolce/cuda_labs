@@ -8,10 +8,17 @@
 template <typename T>
 __global__ void taxpy_kernel(int n, T* X, int Xinc, T* Y, int Yinc, T alpfa){
     int op_nom = std::ceil(((double)(n) / (double)(max(Xinc,Yinc))));
+
     int i = blockIdx.x * blockDim.x + threadIdx.x;
-    if(i < op_nom)
+
+    if(i < op_nom){
         Y[i*Yinc]+=alpfa*X[i*Xinc];
+    }
 }
+
+
+
+
 
 template <typename T>
 double cuda_taxpy(int n, T* X, int Xinc, T* Y, int Yinc, T alpfa, int blocksPerGrid, int threadsPerBlock){
@@ -38,7 +45,7 @@ double cuda_taxpy(int n, T* X, int Xinc, T* Y, int Yinc, T alpfa, int blocksPerG
         exit(EXIT_FAILURE);
     }
 
-    err = cudaMemcpy(gpuY, X, n*sizeof(T), cudaMemcpyHostToDevice);
+    err = cudaMemcpy(gpuY, Y, n*sizeof(T), cudaMemcpyHostToDevice);
     if (err != cudaSuccess){
         printf("gpuY memory relocation error. Host to device.");
         exit(EXIT_FAILURE);

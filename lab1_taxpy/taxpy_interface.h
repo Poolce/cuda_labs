@@ -60,6 +60,7 @@ T* copy_vector(int size, const T* vector){
 template <typename T>
 void taxpy(int n, T* X, int Xinc, T* Y, int Yinc, T alpfa){
     int op_nom = std::ceil((T)((double)(n) / (double)(std::max(Xinc,Yinc))));
+    //  printf("%i\n", op_nom);
     #pragma omp parallel for
     for(int i = 0; i < op_nom; i++){
         Y[i*Yinc]+=alpfa*X[i*Xinc];
@@ -89,6 +90,7 @@ timeResult GetResultExp(int vectorSize, int Xinc, int Yinc, T alpfa, char* descr
     TimeStart = omp_get_wtime();
     double CudaTimeWithoutLoad = cuda_t_axpy<T>(vectorSize, vecA, Xinc, vecB, Yinc, alpfa, blocksPerGrid, threadsPerBlock);
     TimeEnd = omp_get_wtime();
+
     double CudaTimeWithLoad = TimeEnd - TimeStart;
 
     timeResult res;
