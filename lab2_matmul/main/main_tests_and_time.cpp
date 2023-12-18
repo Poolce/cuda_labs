@@ -38,7 +38,7 @@ void RUN_TESTS(){
 
         auto C = shared_cuda_mmul(A,B);
         auto D = obvious_cuda_mmul(A,B);
-
+        
         return C==D;
     });
 }

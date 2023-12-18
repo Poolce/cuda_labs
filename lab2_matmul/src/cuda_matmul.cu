@@ -14,9 +14,9 @@ __global__ void  ObviousMatrixMulKernel(const T* A, std::size_t A_m, const T* B,
     T C_XY_Element = 0;
     #pragma unroll
     for(std::size_t i = 0; i < A_m; i++)
-        C_XY_Element += A[A_m * id_x + i]*B[B_m * i + id_y];
+        C_XY_Element += A[A_m * id_y + i]*B[B_m * i + id_x];
 
-    C[id_x * B_m + id_y] = C_XY_Element;
+    C[id_y * B_m + id_x] = C_XY_Element;
 }
 
 template<int block_size, typename T>
@@ -29,11 +29,11 @@ __global__ void  MatrixMulKernel(const T* A, std::size_t A_m, const T* B, std::s
     int Ty = threadIdx.y;
     
     
-    std::size_t ABlocksLineBegin = Bx * A_m * block_size;
+    std::size_t ABlocksLineBegin = By * A_m * block_size;
     std::size_t ABlocksLineEnd = ABlocksLineBegin + A_m;
     std::size_t ABlocksLineStep = block_size;
 
-    std::size_t BBlocksLineBegin = By * block_size;
+    std::size_t BBlocksLineBegin = Bx * block_size;
     std::size_t BBlocksLineStep = B_m * block_size;
 
     T C_XY_Element = 0;
@@ -46,20 +46,22 @@ __global__ void  MatrixMulKernel(const T* A, std::size_t A_m, const T* B, std::s
         __shared__ T A_Shared[block_size][block_size];
         __shared__ T B_Shared[block_size][block_size];
         
-        A_Shared[Tx][Ty] = A[A_block_iter + A_m * Tx + Ty];
-        B_Shared[Tx][Ty] = B[B_block_iter + B_m * Tx + Ty];
+        A_Shared[Ty][Tx] = A[A_block_iter + A_m * Ty + Tx];
+        B_Shared[Ty][Tx] = B[B_block_iter + B_m * Ty + Tx];
         
         __syncthreads();
     #pragma unroll
         for(std::size_t k = 0; k < block_size; k++)
-            C_XY_Element += A_Shared[Tx][k] * B_Shared[k][Ty];
+            C_XY_Element += A_Shared[Ty][k] * B_Shared[k][Tx];
 
         __syncthreads();
 
     }
-    std::size_t CBlockBegin = B_m * block_size * Bx + block_size * By;
+    std::size_t CBlockBegin = B_m * block_size * By + block_size * Bx;
 
-    C[CBlockBegin + B_m * Tx + Ty] = C_XY_Element;
+
+
+    C[CBlockBegin + B_m * Ty + Tx] = C_XY_Element;
 }
 
 
@@ -101,7 +103,7 @@ void launch_cuda_mmul(const T* A, std::size_t A_n, std::size_t A_m, const T* B, 
 
 
     dim3 blocks(block_size, block_size);
-    dim3 grid(A_n/block_size, B_m/block_size);
+    dim3 grid( B_m/block_size, A_n/block_size);
 
     if(is_obvious){
         ObviousMatrixMulKernel<block_size,T><<<grid, blocks>>>(gpuA, A_m, gpuB, B_m, gpuC);
